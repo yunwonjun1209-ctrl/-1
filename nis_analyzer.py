@@ -122,39 +122,52 @@ if submit_btn:
             # 탭 구성
             tab1, tab2 = st.tabs(["📝 정밀 분석 보고서 (Text)", "📊 시퀀스 구조표 (Table)"])
             
-            # [TAB 1] 사용자가 요청한 텍스트 포맷 출력
+          # [TAB 1] 버튼형 심층 분석 UI (수정됨)
             with tab1:
-                st.subheader("4-1. 거시적 시퀀스 구조 (Macro View)")
-                macro_text = ""
+                st.markdown("### 🎬 시퀀스별 정밀 분석 (Sequence Drill-down)")
+                st.info("👇 아래 버튼을 클릭하면 해당 장면의 [심층 분석]과 [줄거리]가 펼쳐집니다.")
+
                 for seq in sequences:
-                    source_label = "EBS" if seq['source_type'] == "EBS" else "개관/요약"
-                    macro_text += f"**{seq['seq_id']} [{seq['title']}]** (출처: {source_label})\n"
-                    macro_text += f"- 핵심 의미: {seq['macro_view']}\n\n"
-                st.info(macro_text)
-                
-                st.markdown("---")
-                
-                st.subheader("4-2. 미시적 시퀀스 정밀 분석 (Micro Detail)")
-                for seq in sequences:
-                    # 카드 UI
-                    with st.expander(f"🎬 {seq['seq_id']}. {seq['title']}", expanded=True):
+                    # 1. 버튼 라벨 생성
+                    btn_label = f"🎬 {seq['seq_id']} : {seq['title']}"
+                    
+                    # 2. 버튼(Expander) 생성 - 클릭 시 펼쳐짐
+                    with st.expander(btn_label, expanded=False):
                         content = seq['micro_detail']
                         
-                        # 요청하신 포맷대로 문자열 조합
-                        formatted_text = f"""
-**[데이터 소스]** {content['source_info']}
-**[분석 키워드]** {content['keywords']}
+                        # 3. 화면 분할 (왼쪽: 요약 / 오른쪽: 상세 분석)
+                        col1, col2 = st.columns([1, 2])
+                        
+                        # [왼쪽] 메타 정보 (출처, 키워드, 한줄요약)
+                        with col1:
+                            st.markdown(f"**📂 데이터 출처**")
+                            if seq['source_type'] == 'EBS':
+                                st.markdown(f"<span class='ebs-badge'>EBS 연계</span>", unsafe_allow_html=True)
+                            else:
+                                st.markdown(f"<span class='summary-badge'>전문/요약</span>", unsafe_allow_html=True)
+                            
+                            st.markdown(f"<br>**🔑 분석 키워드**", unsafe_allow_html=True)
+                            st.write(f"{content['keywords']}")
+                            
+                            st.markdown(f"<br>**📌 거시적 핵심 의미**", unsafe_allow_html=True)
+                            st.info(f"{seq['macro_view']}")
 
-**1. 장면 구성 (Scene):**
-{content['scene_desc']}
+                        # [오른쪽] 정밀 분석 내용 (가장 중요!)
+                        with col2:
+                            st.markdown("### 📝 [Deep Analysis] 장면 분석 및 해석")
+                            
+                            # 가독성을 높인 마크다운 포맷
+                            detailed_text = f"""
+                            > **1. 장면 구성 (Scene Setup)**
+                            {content['scene_desc']}
 
-**2. 심층 해석 (Deep Analysis):**
-{content['deep_analysis']}
+                            > **2. 심층 해석 (Core Analysis)** 👈 *Focus*
+                            {content['deep_analysis']}
 
-**3. 시각화/연출 포인트:**
-{content['visual_point']}
-                        """
-                        st.markdown(formatted_text)
+                            > **3. 시각화/연출 (Visual & Directing)**
+                            {content['visual_point']}
+                            """
+                            st.markdown(detailed_text)
 
             # [TAB 2] 요청하신 시각화 표 (Table)
             with tab2:
